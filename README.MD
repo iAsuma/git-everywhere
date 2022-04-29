@@ -1,1 +1,3 @@
-# GoFrame Template For SingleRepo
+# command project
+
+usage lsq [options]
