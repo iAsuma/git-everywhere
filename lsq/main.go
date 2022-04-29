@@ -1,7 +1,9 @@
 package main
 
 import (
+	"git-auto/internal/cmd"
 	_ "git-auto/internal/packed"
+	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/glog"
 )
@@ -17,4 +19,11 @@ func main() {
 			}
 		}
 	}()
+
+	command, err := gcmd.NewFromObject(cmd.LSQ)
+	if err != nil {
+		panic(err)
+	}
+
+	command.Run(ctx)
 }
