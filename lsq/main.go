@@ -25,5 +25,13 @@ func main() {
 		panic(err)
 	}
 
+	err = command.AddObject(
+		cmd.Ci,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
 	command.Run(ctx)
 }
