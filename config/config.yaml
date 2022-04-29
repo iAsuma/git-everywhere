@@ -1,8 +1,5 @@
-git:
-  origin:
-    url: "https://github.com/"
-    name: "iasuma"
-  target:
-    name: "iasuma"
-    urls:
+ci:
+  git:
+    from: "https://github.com/iasuma"
+    to:
       - "https://gitee.com/"

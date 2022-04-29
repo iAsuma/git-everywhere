@@ -30,6 +30,9 @@ func init() {
 type (
 	cCiGitInput struct {
 		g.Meta `name:"git" usage:"{cCiGitUsage}" brief:"{cCiGitBrief}"`
+		From   string   `name:"from" short:"fr"  brief:"copy from who's repo"`
+		To     []string `name:"to" short:"to"  brief:"copy to who's repo"`
+		Daemon bool     `name:"daemon" short:"d" brief:"run as a daemon"`
 	}
 	cCiGitOutput struct{}
 )
