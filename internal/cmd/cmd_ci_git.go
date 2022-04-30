@@ -31,8 +31,8 @@ func init() {
 type (
 	cCiGitInput struct {
 		g.Meta `name:"git" usage:"{cCiGitUsage}" brief:"{cCiGitBrief}" config:"ci.git"`
-		From   string   `name:"from" short:"fr"  brief:"copy from who's repo"`
-		To     []string `name:"to" short:"to"  brief:"copy to who's repo"`
+		From   string   `name:"from" short:"fr"  brief:"copy from who's rep, example: https://github.com/iasuma/"`
+		To     []string `name:"to" short:"to"  brief:"copy to who's repo, , example: https://gitee.com/iasuma/"`
 		Daemon bool     `name:"daemon" short:"d" brief:"run as a daemon"`
 	}
 	cCiGitOutput struct{}
@@ -45,11 +45,14 @@ type (
 )
 
 func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err error) {
-	from, err := c.dealInputFrom(ctx, in.From)
+	from, err := c.dealInputFrom(in.From)
 	if err != nil {
 		qlog.Print("from url something wrong")
 		return
 	}
+
+	// github个人主页项目名
+	personHome := strings.ToLower(fmt.Sprintf("%s.%s.io", from.Account, from.Origin))
 
 	rootPath := utility.GetPwd()
 	fileName := fmt.Sprintf("%s%s", rootPath, "/res/git-repo-url.lsq")
@@ -57,8 +60,6 @@ func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err err
 	target, err := c.getTargetPath(fileName)
 	for _, v := range target {
 		fullP := "../data/" + v
-
-		personHome := strings.ToLower(fmt.Sprintf("%s.%s.io", from.Account, from.Origin))
 
 		if !gfile.Exists(fullP) {
 			err = gfile.Mkdir(fullP)
@@ -77,13 +78,17 @@ func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err err
 			}
 
 			for _, t := range in.To {
-				to, err := c.dealInputFrom(ctx, t)
+				to, err := c.dealInputFrom(t)
 				if err != nil {
 					panic(err)
 				}
 
 				if gstr.Equal(v, personHome) {
-					v = strings.ToLower(fmt.Sprintf("%s.%s.io", to.Account, to.Origin))
+					if to.Origin == "gitee" {
+						v = to.Account
+					} else {
+						v = strings.ToLower(fmt.Sprintf("%s.%s.io", to.Account, to.Origin))
+					}
 				}
 
 				err = gproc.ShellRun(fmt.Sprintf("cd %s;git remote add %s %s/%s.git", fullP, to.Origin, to.Addr, v))
@@ -95,7 +100,7 @@ func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err err
 		}
 
 		for _, t := range in.To {
-			to, err := c.dealInputFrom(ctx, t)
+			to, err := c.dealInputFrom(t)
 			if err != nil {
 				panic(err)
 			}
@@ -114,7 +119,8 @@ func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err err
 	return
 }
 
-func (c cCi) dealInputFrom(ctx context.Context, repoUrl string) (repo repoEntity, err error) {
+// 替换git拉取方式为ssh
+func (c cCi) dealInputFrom(repoUrl string) (repo repoEntity, err error) {
 	repoUrl = gstr.TrimRight(repoUrl, "/")
 	repoUrl, err = gregex.ReplaceString("https://|http://|/|:|^git@", "#", repoUrl)
 
@@ -136,6 +142,7 @@ func (c cCi) dealInputFrom(ctx context.Context, repoUrl string) (repo repoEntity
 	return
 }
 
+// 替换git提交方式为ssh
 func (c cCi) getTargetPath(fileName string) ([]string, error) {
 	var targetArr []string
 	err := gfile.ReadLines(fileName, func(text string) error {
