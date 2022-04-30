@@ -61,17 +61,17 @@ func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err err
 		personHome := strings.ToLower(fmt.Sprintf("%s.%s.io", from.Account, from.Origin))
 
 		if !gfile.Exists(fullP) {
+			err = gfile.Mkdir(fullP)
+			if err != nil {
+				panic(err)
+			}
+
 			err = gproc.ShellRun(fmt.Sprintf("cd ../data/;git clone %s/%s.git", from.Addr, v))
 			if err != nil {
 				panic(err)
 			}
 
-			err = gproc.ShellRun(fmt.Sprintf("cd %s;", fullP))
-			if err != nil {
-				panic(err)
-			}
-
-			err = gproc.ShellRun(fmt.Sprintf("cd %s;git remote add %s %s/%s.git", fullP, from.Origin, from.Addr, v))
+			err = gproc.ShellRun(fmt.Sprintf("cd %s;git remote rename origin %s", fullP, from.Origin))
 			if err != nil {
 				panic(err)
 			}
