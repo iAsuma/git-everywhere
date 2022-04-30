@@ -1,5 +1,5 @@
 ci:
   git:
-    from: "https://github.com/iasuma"
+    from: "https://github.com/iasuma/"
     to:
-      - "https://gitee.com/"
+      - "https://gitee.com/iasuma/"
