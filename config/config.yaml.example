@@ -12,3 +12,4 @@ gfcli:
     system:    "linux"
     mod:       "none"
     cgo:       0
+    path: "./bin"
