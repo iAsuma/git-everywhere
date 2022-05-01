@@ -20,3 +20,5 @@ manifest/output/
 temp/
 data/
 lsq
+config/config.yaml
+res/git-repo-url.lsq
