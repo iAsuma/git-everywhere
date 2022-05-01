@@ -22,3 +22,4 @@ data/
 lsq
 config/config.yaml
 res/git-repo-url.lsq
+res/.ssh
