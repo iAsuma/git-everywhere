@@ -9,7 +9,7 @@ services:
       restart_policy:
         condition: on-failure
     volumes:
+      - ~/.ssh/:/root/.ssh/:ro
       - ./config/:/var/work/config/
       - ./data/:/var/work/data/
       - ./res/:/var/work/res/
-      - ./res/.ssh/:/root/.ssh/:ro
