@@ -1,4 +1,4 @@
-module git-auto
+module lsq-cli
 
 go 1.15
 

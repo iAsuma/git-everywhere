@@ -1,8 +1,9 @@
 package main
 
 import (
-	"git-auto/internal/cmd"
-	_ "git-auto/internal/packed"
+	"lsq-cli/internal/cmd"
+	_ "lsq-cli/internal/packed"
+
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gctx"
 	"github.com/gogf/gf/v2/os/glog"

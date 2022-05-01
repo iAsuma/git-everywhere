@@ -3,3 +3,14 @@ ci:
     from: "https://github.com/iasuma/"
     to:
       - "https://gitee.com/iasuma/"
+
+gfcli:
+  build:
+    name:      "lsq"
+    arch:      "amd64"
+    system:    "linux"
+    mod:       "none"
+    cgo:       0
+    version:   ""
+    path:    "./bin"
+    extra:     ""
