@@ -1,4 +1,4 @@
-module lsq-cli
+module git-everywhere
 
 go 1.15
 

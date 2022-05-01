@@ -1,8 +1,8 @@
 package main
 
 import (
-	"lsq-cli/internal/cmd"
-	_ "lsq-cli/internal/packed"
+	"git-everywhere/internal/cmd"
+	_ "git-everywhere/internal/packed"
 
 	"github.com/gogf/gf/v2/os/gcmd"
 	"github.com/gogf/gf/v2/os/gctx"
@@ -27,7 +27,7 @@ func main() {
 	}
 
 	err = command.AddObject(
-		cmd.Ci,
+		cmd.Git,
 	)
 
 	if err != nil {

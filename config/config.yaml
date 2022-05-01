@@ -6,11 +6,8 @@ ci:
 
 gfcli:
   build:
-    name:      "lsq"
+    name:      "lsq-cli"
     arch:      "amd64"
     system:    "linux"
     mod:       "none"
     cgo:       0
-    version:   ""
-    path:    "./bin"
-    extra:     ""

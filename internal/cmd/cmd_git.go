@@ -3,6 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"git-everywhere/utility/qlog"
+	"git-everywhere/utility/qstr"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/genv"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -11,9 +13,6 @@ import (
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/gogf/gf/v2/util/gtag"
-	"lsq-cli/utility"
-	"lsq-cli/utility/qlog"
-	"lsq-cli/utility/qstr"
 	"os"
 	"os/signal"
 	"strings"
@@ -24,11 +23,10 @@ import (
 var proc = make(chan os.Signal)
 
 const (
-	cCiGitUsage = "lsq ci git"
+	cCiGitUsage = "lsq-ci git"
 	cCiGitBrief = "make git repo sync to other repos"
 )
 
-const DataDir = "data"
 const TimeInterval = 1
 
 func init() {
@@ -36,6 +34,12 @@ func init() {
 		"cCiGitUsage": cCiGitUsage,
 		"cCiGitBrief": cCiGitBrief,
 	})
+}
+
+var Git = cGit{}
+
+type cGit struct {
+	g.Meta `name:"git" brief:"Continuous Integration"`
 }
 
 type (
@@ -54,7 +58,7 @@ type (
 	}
 )
 
-func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err error) {
+func (c cGit) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err error) {
 	from, err := c.dealInputFrom(in.From)
 	if err != nil {
 		qlog.Echo("from url something wrong")
@@ -64,11 +68,11 @@ func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err err
 	// github个人主页项目名
 	from.PersonHome = strings.ToLower(fmt.Sprintf("%s.%s.io", from.Account, from.Origin))
 
-	rootPath := utility.GetPwd()
-	fileName := fmt.Sprintf("%s%s", rootPath, "/res/git-repo-url.lsq")
+	resDir := genv.GetWithCmd("lsq.ci.res.dir", ResDir).String()
+	fileName := fmt.Sprintf("%s/%s", resDir, "git-repo-url.lsq")
 	target, err := c.getTargetPath(fileName)
 
-	dataDir := genv.GetWithCmd("lsq.cli.data.dir", DataDir).String()
+	dataDir := genv.GetWithCmd("lsq.ci.data.dir", DataDir).String()
 	if !gfile.Exists(dataDir) {
 		err = gfile.Mkdir(dataDir)
 		if err != nil {
@@ -88,7 +92,7 @@ func (c cCi) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err err
 	return
 }
 
-func (c cCi) syncGitRepo(in cCiGitInput, from repoEntity, target []string, dataDir string) (err error) {
+func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, dataDir string) (err error) {
 	for _, v := range target {
 		fullP := gstr.TrimRight(dataDir, "/") + string(os.PathSeparator) + v
 
@@ -97,7 +101,7 @@ func (c cCi) syncGitRepo(in cCiGitInput, from repoEntity, target []string, dataD
 			if err != nil {
 				panic(err)
 			}
-			qlog.Echo(str)
+			qlog.Echo(qstr.ReplaceN(str))
 
 			str, err = gproc.ShellExec(fmt.Sprintf("cd %s;git remote rename origin %s", fullP, from.Origin))
 			if err != nil {
@@ -177,7 +181,7 @@ func handleProcess() {
 }
 
 // 替换git拉取方式为ssh
-func (c cCi) dealInputFrom(repoUrl string) (repo repoEntity, err error) {
+func (c cGit) dealInputFrom(repoUrl string) (repo repoEntity, err error) {
 	repoUrl = gstr.TrimRight(repoUrl, "/")
 	repoUrl, err = gregex.ReplaceString("https://|http://|/|:|^git@", "#", repoUrl)
 
@@ -199,7 +203,7 @@ func (c cCi) dealInputFrom(repoUrl string) (repo repoEntity, err error) {
 }
 
 // 替换git提交方式为ssh
-func (c cCi) getTargetPath(fileName string) ([]string, error) {
+func (c cGit) getTargetPath(fileName string) ([]string, error) {
 	var targetArr []string
 	err := gfile.ReadLines(fileName, func(text string) error {
 		if text == "" {

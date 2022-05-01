@@ -8,30 +8,35 @@ import (
 	"github.com/gogf/gf/v2/util/gtag"
 )
 
+const (
+	DataDir = "data"
+	ResDir  = "res"
+)
+
 var LSQ = cLSQ{}
 
 type cLSQ struct {
-	g.Meta `name:"lsq" ad:"{cLSQAd}"`
+	g.Meta `name:"lsq-ci" ad:"{cLsqCiAd}"`
 }
 
 const (
-	cLSQAd = `lsq COMMAND is making `
+	cLsqCiAd = `lsq-ci COMMAND is making ci/cd for project`
 )
 
 func init() {
 	gtag.Sets(g.MapStrStr{
-		"cLSQAd": cLSQAd,
+		"cLsqCiAd": cLsqCiAd,
 	})
 }
 
-type cLSQInput struct {
-	g.Meta `name:"lsq"`
+type cLsqCiInput struct {
+	g.Meta `name:"lsq-ci"`
 }
 
-type cLSQOutput struct{}
+type cLsqCiOutput struct{}
 
-func (c cLSQ) Index(ctx context.Context, in cLSQInput) (out *cLSQOutput, err error) {
-	fmt.Println("** this first Command of Asuma **")
+func (c cLSQ) Index(ctx context.Context, in cLsqCiInput) (out *cLsqCiOutput, err error) {
+	fmt.Println("** lsq-cli Command here **")
 	gcmd.CommandFromCtx(ctx).Print()
 	return
 }
