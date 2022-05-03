@@ -1,4 +1,5 @@
 FROM alpine:latest
+MAINTAINER asuma
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 
@@ -17,9 +18,9 @@ ENV GF_GCFG_PATH ${WORKDIR}/config
 ENV LSQ_CI_RES_DIR ${WORKDIR}/res
 ENV LSQ_CI_DATA_DIR ${WORKDIR}/data
 
-COPY bin/lsq-ci /usr/bin/
-COPY config/config.yaml.example ${WORKDIR}/config/config.yaml
-COPY res/git-repo-url.lsq.exmaple ${WORKDIR}/res/git-repo-url.lsq
+COPY bin/linux_amd64/lsq-ci /usr/bin/
+COPY config/config.yaml.example ${WORKDIR}/config/config.yaml.example
+COPY res/git-repo-url.lsq.exmaple ${WORKDIR}/res/git-repo-url.lsq.exmaple
 
 WORKDIR ${WORKDIR}
 
