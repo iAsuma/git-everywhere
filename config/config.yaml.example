@@ -2,7 +2,7 @@ ci:
   git:
     from: "https://github.com/your-name"
     to:
-      - "https://gitee.com/your-name"
+      - "https://gitesse.com/your-name"
       - "https://xxxxlab.com/your-name"
 
 gfcli:
