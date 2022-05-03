@@ -9,6 +9,11 @@ import (
 )
 
 const (
+	EnvResDirKey  = "lsq.ci.res.dir"
+	EnvDataDirKey = "lsq.ci.data.dir"
+)
+
+const (
 	DataDir = "data"
 	ResDir  = "res"
 )
