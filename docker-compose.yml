@@ -5,9 +5,6 @@ services:
     image: iasuma/git-everywhere
     container_name: git-everywhere
     restart: always
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
       - ~/.ssh/:/root/.ssh/:ro
       - ./config/:/var/work/config/
