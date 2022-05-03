@@ -57,6 +57,37 @@ OPTION
 
 
 
+#### 使用docker-compose
+
+##### 同步多个仓库
+
+```yaml
+version: "3.1"
+services:
+  git-everywhere:
+    image: iasuma/git-everywhere
+    container_name: git-everywhere
+    restart: always
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - ~/.ssh/:/root/.ssh/:ro
+      - ./config/:/var/work/config/
+      - ./data/:/var/work/data/
+      - ./res/:/var/work/res/
+    environment:
+      TZ: Asia/Shanghai
+      CI_GIT_FROM_ORIGIN: "https://github.com/your-name"
+      CI_GIT_TO_ORIGIN: "[\"https://gitee.com/your-name\"]"
+      CI_GIT_DELAY: 15
+      CI_GIT_ORIGIN_REPO: "[\"https://github.com/your-name/project1.git\",\"git@github.com:your-name/project2.git\"]"
+```
+
+
+
+
+
 #### 环境变量
 
 ##### `CI_GIT_FROM_ORIGIN`
@@ -65,7 +96,7 @@ OPTION
 
 ##### `CI_GIT_TO_ORIGIN`
 
-目前仓库地址，示例：`https://gitee.com/iasuma`
+目标仓库地址，示例：`https://gitee.com/iasuma`
 
 ##### `CI_GIT_DELAY`
 
