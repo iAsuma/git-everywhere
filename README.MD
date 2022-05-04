@@ -85,9 +85,9 @@ services:
 
 ```
 git-everywhere  启动根目录
-├─config           		配置目录
-│  ├─config.yaml      					配置文件
-│  └─config.yaml.example  		 	示例配置文件
+├─config           	  配置目录
+│  ├─config.yaml                配置文件
+│  └─config.yaml.example        示例配置文件
 ├─data                数据目录
 │  ├─project1          
 │  ├─project2          
