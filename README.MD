@@ -41,7 +41,7 @@ $ docker run -d \
 
 #### 使用docker-compose
 
-##### 同步多个仓库
+##### 同步单个仓库
 
 ```yaml
 version: "3.1"
