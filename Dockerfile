@@ -4,13 +4,11 @@ MAINTAINER asuma
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
 
 RUN apk update \
+    && apk add -U tzdata \
     && apk upgrade \
     && apk add openssh-client \
-    && apk add git
-
-## 设置 操作系统时区
-RUN rm -rf /etc/localtime \
-    && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    && apk add git \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 ENV APP_NAME lsq-ci
 ENV WORKDIR /var/work

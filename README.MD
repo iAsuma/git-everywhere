@@ -23,8 +23,6 @@ $ docker run -d \
     iasuma/git-everywhere
 ```
 
-
-
 推送多个仓库
 
 ``` shell
@@ -52,16 +50,12 @@ services:
     image: iasuma/git-everywhere
     container_name: git-everywhere
     restart: always
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
       - ~/.ssh/:/root/.ssh/:ro
       - ./data/:/var/work/data/
     environment:
-      TZ: Asia/Shanghai
       CI_GIT_FROM_ORIGIN: "https://github.com/your-name"
-      CI_GIT_TO_ORIGIN: "https://gitee.com/your-name"
+      CI_GIT_TO_ORIGIN: "https://xxxlab.com/your-name"
       CI_GIT_DELAY: 15
       CI_GIT_ORIGIN_REPO: "git@github.com:your-name/your-project.git"
 
@@ -76,19 +70,80 @@ services:
     image: iasuma/git-everywhere
     container_name: git-everywhere
     restart: always
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
       - ~/.ssh/:/root/.ssh/:ro
       - ./data/:/var/work/data/
     environment:
-      TZ: Asia/Shanghai
       CI_GIT_FROM_ORIGIN: "https://github.com/your-name"
       CI_GIT_TO_ORIGIN: "[\"https://gitee.com/your-name\"]"
+      # CI_GIT_TO_ORIGIN: "[\"https://gitee.com/your-name\", \"https://xxxlab.com/your-name\"]"
       CI_GIT_DELAY: 15
       CI_GIT_ORIGIN_REPO: "[\"https://github.com/your-name/project1.git\",\"git@github.com:your-name/project2.git\"]"
 ```
+
+#### 使用配置项目（推荐）
+
+```
+git-everywhere  启动根目录
+├─config           		配置目录
+│  ├─config.yaml      					配置文件
+│  └─config.yaml.example  		 	示例配置文件
+├─data                数据目录
+│  ├─project1          
+│  ├─project2          
+│  ...
+├─res                 资源目录
+│  ├─git-repo-url.lsq          	项目仓库地址文件
+│  └─git-repo-url.lsq.example  	示例项目仓库地址文件
+│
+├─docker-compose.yml  docker启动文件  
+```
+
+config.yaml
+
+```yaml
+ci:
+  git:
+    delay: 20
+    from: "https://github.com/your-name"
+    to:
+      - "https://gitee.com/your-name"
+      - "https://xxxxlab.com/your-name"
+    repo:
+      - "git@github.com:your-name/project1.git"
+      - "git@github.com:your-name/project2.git"
+      - "git@github.com:your-name/your-name.github.io.git"
+```
+
+git-repo-url.lsq
+
+```
+git@github.com:your-name/project1.git
+git@github.com:your-name/project2.git
+https://github.com/your-name/you-name.github.io.git
+```
+
+
+
+`config.yaml`中的`ci.git.repo`优先级高于`git-repo-url.lsq`列表，且只会其中一个生效。配了`ci.git.repo`就不用再配置`git-repo-url.lsq`了，反之亦然
+
+Docker-compose.yaml
+
+```yaml
+version: "3.1"
+services:
+  git-everywhere:
+    image: iasuma/git-everywhere
+    container_name: git-everywhere
+    restart: always
+    volumes:
+      - ~/.ssh/:/root/.ssh/:ro
+      - ./config/:/var/work/config/:rw
+      - ./data/:/var/work/data/:rw
+      - ./res/:/var/work/res/:rw
+```
+
+
 
 #### USAGE
 
@@ -118,11 +173,13 @@ OPTION
 
 ##### `CI_GIT_DELAY`
 
-定时时间，默认10s，示例：`20`
+同步间隔时间，默认10s，示例：`20`
 
 ##### `CI_GIT_ORIGIN_REPO`
 
-需要同步的仓库，仓库必须来自配置的`CI_GIT_FROM_ORIGIN`地址，示例：`git@github.com:iAsuma/git-everywhere.git`
+需要同步的项目仓库，项目仓库必须与配置的`CI_GIT_FROM_ORIGIN`主机地址一致，示例：`git@github.com:iAsuma/git-everywhere.git`
+
+若同步的是github的个人主页项目`your-name/your-name.github.io`，目标主机是`gitee`，将会同步到`your-name/your-name`仓库。比如：iAsuma/iAsuma.github.io会同步到gitee的iAsuma/iAsuma仓库
 
 #### 常见问题
 
