@@ -8,6 +8,12 @@
 
 若使用`docker`，需将你的ssh钥匙目录映射到容器内，否则会提示权限问题
 
+**重要：**
+
+**1. 目标仓库名必须要跟来源仓库名一致！**比如：github的仓库名叫git-everywhere，在gitee里也必须叫gitee
+
+**2. 目标仓库必须为空仓库或者同步双方的仓库提交历史必须一致，**建议目标仓库为空仓库
+
 #### 使用docker
 
 推送单个仓库
@@ -169,7 +175,7 @@ OPTION
 
 ##### `CI_GIT_TO_ORIGIN`
 
-目标仓库地址，示例：`https://gitee.com/iasuma`
+目标仓库地址，目标仓库名必须与来源仓库名一致，示例：`https://gitee.com/iasuma`
 
 ##### `CI_GIT_DELAY`
 
