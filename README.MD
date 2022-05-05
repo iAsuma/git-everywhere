@@ -187,4 +187,4 @@ OPTION
 
 请检查git仓库的ssh权限，或者ssh公钥映射问题
 
-![image-20220503202636583](http://img-oss2.udzan.com/md/202205032026952.png)
+![image-20220505214112459](http://img-oss2.udzan.com/md/202205052141613.png)
