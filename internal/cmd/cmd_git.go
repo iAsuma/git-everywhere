@@ -75,7 +75,7 @@ func (c cGit) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err er
 	err = c.defaultInput(&in)
 	from, err := c.dealInputFrom(in.From)
 	if err != nil {
-		qlog.Echo("from url something wrong")
+		qlog.Echo("FROM url something wrong")
 		return
 	}
 
@@ -88,7 +88,7 @@ func (c cGit) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err er
 	if !gfile.Exists(dataDir) {
 		err = gfile.Mkdir(dataDir)
 		if err != nil {
-			qlog.Echo(fmt.Sprintf("文件夹%s发生错误，%s", dataDir, err.Error()))
+			qlog.Echo(fmt.Sprintf("文件夹%s生成错误，%s", dataDir, err.Error()))
 			return
 		}
 	}
@@ -125,12 +125,11 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 				qlog.Echo(fmt.Sprintf("同步%s发生错误，git remote rename error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 				continue
 			}
-			qlog.Echo(qstr.ReplaceN(str))
 
 			for _, t := range in.To {
 				to, err := c.dealInputFrom(t)
 				if err != nil {
-					qlog.Echo(fmt.Sprintf("同步%s发生错误，to url something wrong，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+					qlog.Echo(fmt.Sprintf("同步%s发生错误，TO url something wrong，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 					continue
 				}
 
@@ -148,27 +147,28 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 					continue
 				}
 			}
-		}
-
-		for _, t := range in.To {
-			to, err := c.dealInputFrom(t)
-			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，to url something wrong，%s", v, err.Error()))
-				continue
-			}
+		} else {
 			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git pull %s master -f", fullP, from.Origin))
 			if err != nil {
 				qlog.Echo(fmt.Sprintf("同步%s发生错误，git pull error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 				continue
 			}
-			qlog.Echo(qstr.ReplaceN(str))
+			qlog.Echo(fmt.Sprintf("%s<-%s %s", v, from.Origin, qstr.ReplaceN(str)))
+		}
 
-			str, err = gproc.ShellExec(fmt.Sprintf("cd %s;git push %s master -f", fullP, to.Origin))
+		for _, t := range in.To {
+			to, err := c.dealInputFrom(t)
+			if err != nil {
+				qlog.Echo(fmt.Sprintf("同步%s发生错误，TO url something wrong，%s", v, err.Error()))
+				continue
+			}
+
+			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git push %s master -f", fullP, to.Origin))
 			if err != nil {
 				qlog.Echo(fmt.Sprintf("同步%s发生错误，git push error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 				continue
 			}
-			qlog.Echo(qstr.ReplaceN(str))
+			qlog.Echo(fmt.Sprintf("%s->%s %s", v, to.Origin, qstr.ReplaceN(str)))
 		}
 	}
 
