@@ -186,3 +186,5 @@ OPTION
 ![image-20220503202636583](https://img-oss2.udzan.com/md/202205032026952.png)
 
 请检查git仓库的ssh权限，或者ssh公钥映射问题
+
+![image-20220503202636583](http://img-oss2.udzan.com/md/202205032026952.png)
