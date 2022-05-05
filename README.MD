@@ -16,7 +16,7 @@
 
 #### 使用docker
 
-推送单个仓库
+同步单个仓库
 
 ```shell
 $ docker run -d \
@@ -29,7 +29,7 @@ $ docker run -d \
     iasuma/git-everywhere
 ```
 
-推送多个仓库
+同步多个仓库
 
 ``` shell
 $ docker run -d \
