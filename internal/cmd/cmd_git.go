@@ -153,7 +153,7 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 				qlog.Echo(fmt.Sprintf("同步%s发生错误，git pull error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 				continue
 			}
-			qlog.Echo(fmt.Sprintf("%s<-%s %s", v, from.Origin, qstr.ReplaceN(str)))
+			qlog.Echo(fmt.Sprintf("[%s <- %s] %s", v, from.Origin, qstr.ReplaceN(str)))
 		}
 
 		for _, t := range in.To {
@@ -168,7 +168,7 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 				qlog.Echo(fmt.Sprintf("同步%s发生错误，git push error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 				continue
 			}
-			qlog.Echo(fmt.Sprintf("%s->%s %s", v, to.Origin, qstr.ReplaceN(str)))
+			qlog.Echo(fmt.Sprintf("[%s -> %s] %s", v, to.Origin, qstr.ReplaceN(str)))
 		}
 	}
 
