@@ -113,18 +113,12 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 		fullP := gstr.TrimRight(dataDir, "/") + string(os.PathSeparator) + v
 
 		if !gfile.Exists(fullP) {
-			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git clone %s/%s.git", dataDir, from.Addr, v))
+			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git clone -o %s %s/%s.git", dataDir, from.Origin, from.Addr, v))
 			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，git clone error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+				qlog.Echo(fmt.Sprintf("同步%s发生错误，git clone -o error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 				continue
 			}
 			qlog.Echo(qstr.ReplaceN(str))
-
-			str, err = gproc.ShellExec(fmt.Sprintf("cd %s;git remote rename origin %s", fullP, from.Origin))
-			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，git remote rename error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
-				continue
-			}
 
 			for _, t := range in.To {
 				to, err := c.dealInputFrom(t)
@@ -150,7 +144,7 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 		} else {
 			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git pull %s master -f", fullP, from.Origin))
 			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，git pull error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+				qlog.Echo(fmt.Sprintf("同步%s发生错误，git pull -f error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
 				continue
 			}
 			qlog.Echo(fmt.Sprintf("[%s <- %s] %s", v, from.Origin, qstr.ReplaceN(str)))
