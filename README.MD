@@ -16,29 +16,29 @@
 
 #### 使用docker
 
-同步单个仓库
+同步单个目标主机
 
 ```shell
 $ docker run -d \
     --name git-everywhere \
     -v ~/.ssh:/root/.ssh \
-    -e CI_GIT_FROM_ORIGIN="https://github.com/your-name" \
-    -e CI_GIT_TO_ORIGIN="https://gitee.com/your-name" \
+    -e CI_GIT_FROM_ORIGIN="github.com/your-name" \
+    -e CI_GIT_TO_ORIGIN="gitee.com/your-name" \
     -e CI_GIT_DELAY=10 \
-    -e CI_GIT_ORIGIN_REPO="git@github.com:your-name/your-project.git" \
+    -e CI_GIT_ORIGIN_REPO="your-project1,your-project2" \
     iasuma/git-everywhere
 ```
 
-同步多个仓库
+同步到多个目标主机
 
 ``` shell
 $ docker run -d \
     --name git-everywhere \
     -v ~/.ssh:/root/.ssh \
-    -e CI_GIT_FROM_ORIGIN="https://github.com/your-name" \
-    -e CI_GIT_TO_ORIGIN=[\"https://gitee.com/your-name\",\"https://xxxx.com/your-name\"] \
+    -e CI_GIT_FROM_ORIGIN="github.com/your-name" \
+    -e CI_GIT_TO_ORIGIN=[\"gitee.com/your-name\",\"xxxx.net:8022/your-name\"] \
     -e CI_GIT_DELAY=20 \
-    -e CI_GIT_ORIGIN_REPO=[\"git@github.com:your-name/your-project1.git\",\"your-name/your-project2.git\"] \
+    -e CI_GIT_ORIGIN_REPO="your-project1,your-project2" \
     iasuma/git-everywhere
 ```
 
@@ -47,7 +47,7 @@ $ docker run -d \
 
 #### 使用docker-compose
 
-##### 同步单个仓库
+##### 同步单个目标主机
 
 ```yaml
 version: "3.1"
@@ -60,14 +60,14 @@ services:
       - ~/.ssh/:/root/.ssh/:ro
       - ./data/:/var/work/data/
     environment:
-      CI_GIT_FROM_ORIGIN: "https://github.com/your-name"
-      CI_GIT_TO_ORIGIN: "https://xxxlab.com/your-name"
+      CI_GIT_FROM_ORIGIN: "github.com/your-name"
+      CI_GIT_TO_ORIGIN: "xxxlab.com/your-name"
       CI_GIT_DELAY: 15
-      CI_GIT_ORIGIN_REPO: "git@github.com:your-name/your-project.git"
+      CI_GIT_ORIGIN_REPO: "your-project1,your-project2"
 
 ```
 
-##### 同步多个仓库
+##### 同步到多个目标主机
 
 ```yaml
 version: "3.1"
@@ -80,11 +80,11 @@ services:
       - ~/.ssh/:/root/.ssh/:ro
       - ./data/:/var/work/data/
     environment:
-      CI_GIT_FROM_ORIGIN: "https://github.com/your-name"
-      CI_GIT_TO_ORIGIN: "[\"https://gitee.com/your-name\"]"
-      # CI_GIT_TO_ORIGIN: "[\"https://gitee.com/your-name\", \"https://xxxlab.com/your-name\"]"
+      CI_GIT_FROM_ORIGIN: "github.com/your-name"
+      CI_GIT_TO_ORIGIN: "[\"gitee.com/your-name\"]"
+      # CI_GIT_TO_ORIGIN: "[\"gitee.com/your-name\", \"xxxlab.com/your-name\"]"
       CI_GIT_DELAY: 15
-      CI_GIT_ORIGIN_REPO: "[\"https://github.com/your-name/project1.git\",\"git@github.com:your-name/project2.git\"]"
+      CI_GIT_ORIGIN_REPO: "your-project1,your-project2"
 ```
 
 #### 使用配置项目（推荐）
@@ -111,29 +111,26 @@ config.yaml
 ci:
   git:
     delay: 20
-    from: "https://github.com/your-name"
+    from: "github.com/your-name"
     to:
-      - "https://gitee.com/your-name"
-      - "https://xxxxlab.com/your-name"
-    repo:
-      - "git@github.com:your-name/project1.git"
-      - "git@github.com:your-name/project2.git"
-      - "git@github.com:your-name/your-name.github.io.git"
+      - "gitee.com/your-name"
+    #  - "xxxxlab.com/your-name"
+    repo: "your-project1,your-project2"
 ```
 
 git-repo-url.lsq
 
 ```
-git@github.com:your-name/project1.git
-git@github.com:your-name/project2.git
-https://github.com/your-name/you-name.github.io.git
+project1
+project2
+you-name.github.io
 ```
 
 
 
 `config.yaml`中的`ci.git.repo`优先级高于`git-repo-url.lsq`列表，且只会其中一个生效。配了`ci.git.repo`就不用再配置`git-repo-url.lsq`了，反之亦然
 
-Docker-compose.yaml
+docker-compose.yaml
 
 ```yaml
 version: "3.1"
@@ -160,9 +157,9 @@ USAGE
 
 OPTION
     -dl, --delay   time interval, default 10 seconds
-    -fr, --from    copy from who's rep, example: https://github.com/iasuma/
-    -to, --to      copy to who's repo, example: https://gitee.com/iasuma
-    -rp, --repo    the repositories which you want sync, example: git@github.com:iAsuma/your-project.git
+    -fr, --from    copy from who's rep, example: github.com/iasuma
+    -to, --to      copy to who's repo, example: gitee.com/iasuma
+    -rp, --repo    the repositories which you want sync, example: your-project1,your-project2
     -h, --help     more information about this command
 ~~~
 
@@ -171,11 +168,11 @@ OPTION
 
 ##### `CI_GIT_FROM_ORIGIN`
 
-来源仓库地址，示例：`https://github.com/iasuma`
+来源仓库地址，示例：`github.com/iasuma`
 
 ##### `CI_GIT_TO_ORIGIN`
 
-目标仓库地址，目标仓库名必须与来源仓库名一致，示例：`https://gitee.com/iasuma`
+目标仓库地址，目标仓库名必须与来源仓库名一致，示例：`gitee.com/iasuma`
 
 ##### `CI_GIT_DELAY`
 
@@ -183,7 +180,7 @@ OPTION
 
 ##### `CI_GIT_ORIGIN_REPO`
 
-需要同步的项目仓库，项目仓库必须与配置的`CI_GIT_FROM_ORIGIN`主机地址一致，示例：`git@github.com:iAsuma/git-everywhere.git`
+需要同步的项目仓库，示例：`git-everywhere`
 
 若同步的是github的个人主页项目`your-name/your-name.github.io`，目标主机是`gitee`，将会同步到`your-name/your-name`仓库。比如：iAsuma/iAsuma.github.io会同步到gitee的iAsuma/iAsuma仓库
 

@@ -1,9 +1,12 @@
 ci:
   git:
-    from: "https://github.com/your-name"
+    delay: 20
+    from: "github.com/your-name"
+    # from: "gitlab.your-domain.com:8022/your-name"
     to:
-      - "https://gitesse.com/your-name"
-      - "https://xxxxlab.com/your-name"
+      - "gitee.com/your-name"
+      - "your-domain.com:8888/your-name"
+      - "two.your-domain.com:8888/your-name"
 
 gfcli:
   build:

@@ -58,9 +58,9 @@ type (
 	cCiGitInput struct {
 		g.Meta `name:"git" usage:"{cCiGitUsage}" brief:"{cCiGitBrief}" config:"ci.git"`
 		Delay  int      `name:"delay" short:"dl" brief:"time interval, default 10 seconds"`
-		From   string   `name:"from" short:"fr"  brief:"copy from who's rep, example: https://github.com/iasuma"`
-		To     []string `name:"to" short:"to"  brief:"copy to who's repo, example: https://gitee.com/iasuma"`
-		Repo   []string `name:"repo" short:"rp" brief:"the repositories which you want sync, example: git@github.com:iAsuma/your-project.git"`
+		From   string   `name:"from" short:"fr"  brief:"copy from who's rep, example: github.com/iasuma"`
+		To     []string `name:"to" short:"to"  brief:"copy to who's repo, example: gitee.com/iasuma"`
+		Repo   string   `name:"repo" short:"rp" brief:"the repositories which you want sync, example: your-project1,your-project2"`
 	}
 	cCiGitOutput struct{}
 
@@ -109,11 +109,12 @@ func (c cGit) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err er
 	return
 }
 
-func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, dataDir string) (err error) {
+func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target [][2]string, dataDir string) (err error) {
 	var bufStr string
 	for _, v := range target {
 		qlog.Echo("---------------------------------------------------------------------------")
-		currentProject := v
+		currentProject := v[0]
+		toProject := v[1]
 		fullP := gstr.TrimRight(dataDir, "/") + string(os.PathSeparator) + currentProject
 
 		if !gfile.Exists(fullP) {
@@ -135,14 +136,14 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 
 				if gstr.Equal(currentProject, from.PersonHome) {
 					if to.Origin == "gitee" {
-						currentProject = to.Account
+						toProject = to.Account
 					} else {
-						currentProject = strings.ToLower(fmt.Sprintf("%s.%s.io", to.Account, to.Origin))
+						toProject = strings.ToLower(fmt.Sprintf("%s.%s.io", to.Account, to.Origin))
 					}
 				}
 
 				// git remote add
-				remoteAddShell := fmt.Sprintf("git remote add %s %s/%s.git", to.Origin, to.Addr, currentProject)
+				remoteAddShell := fmt.Sprintf("git remote add %s %s/%s.git", to.Origin, to.Addr, toProject)
 				qlog.Echo(currentProject, remoteAddShell)
 				err = qcmd.ShellRun(fullP, remoteAddShell)
 				if err != nil {
@@ -207,7 +208,7 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 			qlog.Echo(currentProject, pushShell)
 			err = qcmd.ShellRun(fullP, pushShell)
 			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，git push error，%s，%s", v, err.Error()))
+				qlog.Echo(fmt.Sprintf("同步%s发生错误，git push error，%s", v, err.Error()))
 				continue
 			}
 		}
@@ -229,8 +230,8 @@ func (c cGit) defaultInput(in *cCiGitInput) (err error) {
 		in.Delay = genv.GetWithCmd(EnvCiDelayKey).Int()
 	}
 
-	if len(in.Repo) == 0 {
-		in.Repo = gconv.SliceStr(genv.GetWithCmd(EnvCiRepoKey).Slice())
+	if in.Repo == "" {
+		in.Repo = genv.GetWithCmd(EnvCiRepoKey).String()
 	}
 
 	return
@@ -239,41 +240,46 @@ func (c cGit) defaultInput(in *cCiGitInput) (err error) {
 // 替换git拉取方式为ssh
 func (c cGit) dealInputFrom(repoUrl string) (repo repoEntity, err error) {
 	repoUrl = gstr.TrimRight(repoUrl, "/")
-	repoUrl, err = gregex.ReplaceString("https://|http://|/|:|^git@", "#", repoUrl)
+	repoUrl, err = gregex.ReplaceString("https://|http://", "", repoUrl)
 
-	fromUrlArr := gstr.Split(repoUrl, "#")
+	fromUrlArr := gstr.Split(repoUrl, "/")
 
-	if len(fromUrlArr) != 3 {
+	if len(fromUrlArr) != 2 {
 		qlog.Print("from url is wrong")
 		return
 	}
 
-	origin := gstr.Split(fromUrlArr[1], ".")
+	originUrl := gstr.Split(fromUrlArr[0], ":")
+	if len(originUrl) > 2 {
+		qlog.Print("from url is wrong")
+		return
+	}
+
+	origin := gstr.Split(originUrl[0], ".")
 	orLen := len(origin)
 
 	repo.Origin = origin[orLen-2]
-	repo.Account = fromUrlArr[2]
-	repo.Addr = fmt.Sprintf("git@%s:%s", fromUrlArr[1], fromUrlArr[2])
+	repo.Account = fromUrlArr[1]
+	repo.Addr = fmt.Sprintf("git@%s:%s", fromUrlArr[0], fromUrlArr[1])
 
 	return
 }
 
 // 替换git提交方式为ssh
-func (c cGit) getTargetPath(in cCiGitInput) (targetArr []string, err error) {
-	if len(in.Repo) > 0 {
-		for _, v := range in.Repo {
-			lineInfo := gstr.Split(v, "/")
-			infoLen := len(lineInfo)
-			if infoLen == 0 {
-				return targetArr, nil
+func (c cGit) getTargetPath(in cCiGitInput) (targetArr [][2]string, err error) {
+	if in.Repo != "" {
+		repoList := gstr.SplitAndTrim(in.Repo, ",")
+		for _, v := range repoList {
+			lineInfo := gstr.Split(v, ":")
+			var t [2]string
+			t[0] = lineInfo[0]
+			if len(lineInfo) > 1 {
+				t[1] = lineInfo[1]
+			} else {
+				t[1] = lineInfo[0]
 			}
 
-			name, err := gregex.ReplaceString(".git$", "", lineInfo[infoLen-1])
-			if err != nil {
-				return targetArr, nil
-			}
-
-			targetArr = append(targetArr, strings.ToLower(name))
+			targetArr = append(targetArr, t)
 		}
 	} else {
 		resDir := genv.GetWithCmd(EnvResDirKey, ResDir).String()
@@ -283,18 +289,16 @@ func (c cGit) getTargetPath(in cCiGitInput) (targetArr []string, err error) {
 				return nil
 			}
 
-			lineInfo := gstr.Split(text, "/")
-			infoLen := len(lineInfo)
-			if infoLen == 0 {
-				return nil
+			lineInfo := gstr.Split(text, ":")
+			var t [2]string
+			t[0] = lineInfo[0]
+			if len(lineInfo) > 1 {
+				t[1] = lineInfo[1]
+			} else {
+				t[1] = lineInfo[0]
 			}
 
-			name, err := gregex.ReplaceString(".git$", "", lineInfo[infoLen-1])
-			if err != nil {
-				return nil
-			}
-
-			targetArr = append(targetArr, strings.ToLower(name))
+			targetArr = append(targetArr, t)
 			return nil
 		})
 	}
