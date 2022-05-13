@@ -2,7 +2,6 @@ package qlog
 
 import (
 	"context"
-	"fmt"
 	"github.com/gogf/gf/v2/os/gtime"
 
 	"github.com/gogf/gf/v2/frame/g"
@@ -69,7 +68,7 @@ func Debugf(format string, v ...interface{}) {
 }
 
 func Echo(v ...interface{}) {
-	preEcho := fmt.Sprintf("%s ", gtime.Now())
+	preEcho := gtime.Now()
 	data := []interface{}{preEcho}
 
 	Print(append(data, v...)...)

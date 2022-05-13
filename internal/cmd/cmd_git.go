@@ -3,8 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"git-everywhere/utility/qcmd"
 	"git-everywhere/utility/qlog"
-	"git-everywhere/utility/qstr"
+	"git-everywhere/utility/qslice"
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/os/genv"
 	"github.com/gogf/gf/v2/os/gfile"
@@ -94,9 +95,9 @@ func (c cGit) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err er
 	}
 
 	gtimer.AddSingleton(ctx, TimeInterval*time.Second, func(ctx context.Context) {
-		qlog.Echo("本次同步开始")
+		qlog.Echo("===========================================================================")
+		qlog.Echo("repo sync start ...")
 		err = c.syncGitRepo(in, from, target, dataDir)
-		qlog.Echo("本次同步结束")
 		if in.Delay == 0 {
 			in.Delay = TimeDelay
 		}
@@ -109,45 +110,87 @@ func (c cGit) Git(ctx context.Context, in cCiGitInput) (out cCiGitOutput, err er
 }
 
 func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, dataDir string) (err error) {
+	var bufStr string
 	for _, v := range target {
-		fullP := gstr.TrimRight(dataDir, "/") + string(os.PathSeparator) + v
+		qlog.Echo("---------------------------------------------------------------------------")
+		currentProject := v
+		fullP := gstr.TrimRight(dataDir, "/") + string(os.PathSeparator) + currentProject
 
 		if !gfile.Exists(fullP) {
-			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git clone -o %s %s/%s.git", dataDir, from.Origin, from.Addr, v))
+			// git clone
+			cloneShell := fmt.Sprintf("git clone -o %s %s/%s.git", from.Origin, from.Addr, currentProject)
+			qlog.Echo(currentProject, cloneShell)
+			err = qcmd.ShellRun(dataDir, cloneShell)
 			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，git clone -o error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+				qlog.Echo(fmt.Sprintf("%s，git clone -o error，%s", currentProject, err.Error()))
 				continue
 			}
-			qlog.Echo(qstr.ReplaceN(str))
 
 			for _, t := range in.To {
 				to, err := c.dealInputFrom(t)
 				if err != nil {
-					qlog.Echo(fmt.Sprintf("同步%s发生错误，TO url something wrong，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+					qlog.Echo(fmt.Sprintf("%s，the TO's url something wrong，%s", currentProject, err.Error()))
 					continue
 				}
 
-				if gstr.Equal(v, from.PersonHome) {
+				if gstr.Equal(currentProject, from.PersonHome) {
 					if to.Origin == "gitee" {
-						v = to.Account
+						currentProject = to.Account
 					} else {
-						v = strings.ToLower(fmt.Sprintf("%s.%s.io", to.Account, to.Origin))
+						currentProject = strings.ToLower(fmt.Sprintf("%s.%s.io", to.Account, to.Origin))
 					}
 				}
 
-				str, err = gproc.ShellExec(fmt.Sprintf("cd %s;git remote add %s %s/%s.git", fullP, to.Origin, to.Addr, v))
+				// git remote add
+				remoteAddShell := fmt.Sprintf("git remote add %s %s/%s.git", to.Origin, to.Addr, currentProject)
+				qlog.Echo(currentProject, remoteAddShell)
+				err = qcmd.ShellRun(fullP, remoteAddShell)
 				if err != nil {
-					qlog.Echo(fmt.Sprintf("同步%s发生错误，git remote add error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+					qlog.Echo(fmt.Sprintf("%s，git remote add error，%s", v, err.Error()))
 					continue
 				}
 			}
-		} else {
-			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git pull %s master -f", fullP, from.Origin))
-			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，git pull -f error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+		}
+
+		// git fetch
+		fetchShell := fmt.Sprintf("git fetch %s", from.Origin)
+		qlog.Echo(currentProject, fetchShell)
+		err = qcmd.ShellRun(fullP, fetchShell)
+
+		// git branch
+		branchLShell := "git branch"
+		qlog.Echo(currentProject, branchLShell)
+		bufStr = qcmd.MustShellExec(fullP, branchLShell)
+		bufStr = strings.ReplaceAll(bufStr, "*", "")
+		localB := gstr.SplitAndTrim(bufStr, "\n")
+
+		// git branch -r
+		branchRShell := "git branch -r"
+		qlog.Echo(currentProject, branchRShell)
+		bufStr = qcmd.MustShellExec(fullP, branchRShell)
+		remoteB := gstr.SplitAndTrim(bufStr, "\n")
+
+		for _, r := range remoteB {
+			if strings.Contains(r, "->") {
 				continue
 			}
-			qlog.Echo(fmt.Sprintf("[%s <- %s] %s", v, from.Origin, qstr.ReplaceN(str)))
+
+			if strings.Contains(r, from.Origin) {
+				newB := strings.ReplaceAll(r, from.Origin+"/", "")
+				if qslice.ContainsInSliceString(localB, newB) {
+					checkoutShell := fmt.Sprintf("git checkout %s;git merge %s", newB, r)
+					qlog.Echo(currentProject, checkoutShell)
+					err = qcmd.ShellRun(fullP, checkoutShell)
+					if err != nil {
+						qlog.Echo("git merge error", err.Error())
+						continue
+					}
+				} else {
+					branchNShell := fmt.Sprintf("git branch %s %s", newB, r)
+					qlog.Echo(currentProject, branchNShell)
+					err = qcmd.ShellRun(fullP, branchNShell)
+				}
+			}
 		}
 
 		for _, t := range in.To {
@@ -157,12 +200,13 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 				continue
 			}
 
-			str, err := gproc.ShellExec(fmt.Sprintf("cd %s;git push %s master -f", fullP, to.Origin))
+			pushShell := fmt.Sprintf("git push %s --all;git push %s --tags", to.Origin, to.Origin)
+			qlog.Echo(currentProject, pushShell)
+			err = qcmd.ShellRun(fullP, pushShell)
 			if err != nil {
-				qlog.Echo(fmt.Sprintf("同步%s发生错误，git push error，%s，%s", v, err.Error(), qstr.ReplaceN(str)))
+				qlog.Echo(fmt.Sprintf("同步%s发生错误，git push error，%s，%s", v, err.Error()))
 				continue
 			}
-			qlog.Echo(fmt.Sprintf("[%s -> %s] %s", v, to.Origin, qstr.ReplaceN(str)))
 		}
 	}
 
