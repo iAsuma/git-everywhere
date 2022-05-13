@@ -10,7 +10,7 @@ ci:
 
 gfcli:
   build:
-    name:      "lsq-cli"
+    name:      "lsq-ci"
     arch:      "amd64"
     system:    "linux"
     mod:       "none"
