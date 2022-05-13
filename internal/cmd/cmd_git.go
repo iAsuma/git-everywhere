@@ -178,6 +178,7 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 			if strings.Contains(r, from.Origin) {
 				newB := strings.ReplaceAll(r, from.Origin+"/", "")
 				if qslice.ContainsInSliceString(localB, newB) {
+					// git checkout & git merge
 					checkoutShell := fmt.Sprintf("git checkout %s;git merge %s", newB, r)
 					qlog.Echo(currentProject, checkoutShell)
 					err = qcmd.ShellRun(fullP, checkoutShell)
@@ -186,6 +187,7 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 						continue
 					}
 				} else {
+					// git branch
 					branchNShell := fmt.Sprintf("git branch %s %s", newB, r)
 					qlog.Echo(currentProject, branchNShell)
 					err = qcmd.ShellRun(fullP, branchNShell)
@@ -200,6 +202,7 @@ func (c cGit) syncGitRepo(in cCiGitInput, from repoEntity, target []string, data
 				continue
 			}
 
+			// git push
 			pushShell := fmt.Sprintf("git push %s --all;git push %s --tags", to.Origin, to.Origin)
 			qlog.Echo(currentProject, pushShell)
 			err = qcmd.ShellRun(fullP, pushShell)
